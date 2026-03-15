@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemi Takip Sistemi | Ship Tracking</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="ocean-bg">
+        <div class="wave wave-1"></div>
+        <div class="wave wave-2"></div>
+        <div class="wave wave-3"></div>
+    </div>
+
+    <div class="app-container">
+        <header class="header">
+            <div class="logo">
+                <span class="logo-icon">⚓</span>
+                <h1>Gemi Takip Sistemi</h1>
+                <span class="logo-subtitle">Ship Tracking</span>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <aside class="sidebar">
+                <section class="coordinate-panel card glass">
+                    <h2>
+                        <span class="panel-icon">📍</span>
+                        Koordinat Girişi
+                    </h2>
+                    <form id="coordinate-form" class="coordinate-form">
+                        <div class="input-hint-top">Örn: 36°50'38"N 30°36'22"E</div>
+                        <div class="input-group">
+                            <label for="lat-input">Enlem</label>
+                            <input type="text" id="lat-input" placeholder="365038" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="lng-input">Boylam</label>
+                            <input type="text" id="lng-input" placeholder="303622" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <span>Koordinat Ekle</span>
+                            <span class="btn-icon">+</span>
+                        </button>
+                    </form>
+
+                    <div class="coordinates-list">
+                        <h3>Kayıtlı Koordinatlar <span id="coord-count">0</span></h3>
+                        <div id="coordinates-container" class="coordinates-container">
+                            <p class="empty-state" id="empty-state">Henüz koordinat eklenmedi</p>
+                            <ul id="coordinates-list"></ul>
+                        </div>
+                        <div class="list-actions">
+                            <button id="start-tracking" class="btn btn-success" disabled>
+                                <span>🛥️ Takibi Başlat</span>
+                            </button>
+                            <button id="clear-all" class="btn btn-ghost">
+                                <span>Temizle</span>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            </aside>
+
+            <div class="map-section">
+                <div class="map-wrapper card glass">
+                    <div id="map"></div>
+                    <div class="map-overlay visible" id="map-overlay">
+                        <div class="overlay-content">
+                            <p>Koordinat ekleyin ve takibi başlatın</p>
+                            <span class="overlay-hint">En az 2 koordinat gereklidir</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
