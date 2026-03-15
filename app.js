@@ -18,11 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
       maxZoom: 19
     }).addTo(map);
 
-    // Harita her zaman görünür olsun (overlay sadece bilgi amaçlı)
     setTimeout(() => map.invalidateSize(), 100);
   }
 
-  // Gemi ikonu - belirgin yandan görünüm (pruva, güverte, köprü, baca)
+  // Gemi ikonu 
   const shipIcon = L.divIcon({
     className: 'ship-marker',
     html: `
@@ -104,31 +103,51 @@ document.addEventListener('DOMContentLoaded', () => {
     iconAnchor: [3, 42]
   });
 
-  // 365038 formatı: DDMMSS -> derece + dakika/60 + saniye/3600
-  // 365038 = 36°50'38" = 36 + 50/60 + 38/3600
-  function parseCompactDMS(val) {
-    const n = parseFloat(String(val).trim());
-    if (isNaN(n)) return null;
-    const neg = n < 0;
-    const abs = Math.abs(n);
-    const deg = Math.floor(abs / 10000);
-    const min = Math.floor((abs % 10000) / 100);
-    const sec = abs % 100;
+  // DMS tek değer: 40° 52' 30" N, 405230N veya 40 52 30 N
+  function parseDMSSingle(input) {
+    const str = String(input).trim();
+    if (!str) return null;
+    // Boşlukla ayrılmış: 40 52 30 N veya 40 52 30N
+    const spaceMatch = str.match(/^(\d+)\s+(\d+)\s+([\d.]+)\s*([NSEW])$/i);
+    if (spaceMatch) {
+      const deg = parseInt(spaceMatch[1], 10);
+      const min = parseInt(spaceMatch[2], 10);
+      const sec = parseFloat(spaceMatch[3]);
+      const dir = spaceMatch[4].toUpperCase();
+      let decimal = deg + min / 60 + sec / 3600;
+      if (dir === 'S' || dir === 'W') decimal = -decimal;
+      return decimal;
+    }
+    // DDMMSS formatı: 405230N, 291545E (6-7 rakam + yön)
+    const ddmmssMatch = str.match(/^(\d{6,7})\s*([NSEW])$/i);
+    if (ddmmssMatch) {
+      const num = ddmmssMatch[1];
+      const dir = ddmmssMatch[2].toUpperCase();
+      let deg, min, sec;
+      if (num.length === 6) {
+        deg = parseInt(num.slice(0, 2), 10);
+        min = parseInt(num.slice(2, 4), 10);
+        sec = parseInt(num.slice(4, 6), 10);
+      } else {
+        deg = parseInt(num.slice(0, 3), 10);
+        min = parseInt(num.slice(3, 5), 10);
+        sec = parseInt(num.slice(5, 7), 10);
+      }
+      let decimal = deg + min / 60 + sec / 3600;
+      if (dir === 'S' || dir === 'W') decimal = -decimal;
+      return decimal;
+    }
+    // Klasik DMS: 40° 52' 30" N
+    const dmsRegex = /(\d+)[°\sº]*\s*(\d+)['\s′]*\s*([\d.]+)["\s″]*\s*([NSEW])/i;
+    const match = str.match(dmsRegex);
+    if (!match) return null;
+    const deg = parseInt(match[1], 10);
+    const min = parseInt(match[2], 10);
+    const sec = parseFloat(match[3]);
+    const dir = match[4].toUpperCase();
     let decimal = deg + min / 60 + sec / 3600;
-    return neg ? -decimal : decimal;
-  }
-
-  // 365038 veya 41.0082 formatını parse et
-  function parseCoordValue(val, type) {
-    const str = String(val).trim();
-    const n = parseFloat(str);
-    if (isNaN(n)) return null;
-    // 5+ basamaklı tam sayı -> compact DMS (365038, 303622, 1203645)
-    if (Math.abs(n) >= 10000 && (Number.isInteger(n) || n % 1 === 0)) return parseCompactDMS(n);
-    // Ondalık derece (küçük sayılar)
-    if (type === 'lat' && n >= -90 && n <= 90) return n;
-    if (type === 'lng' && n >= -180 && n <= 180) return n;
-    return parseCompactDMS(n);
+    if (dir === 'S' || dir === 'W') decimal = -decimal;
+    return decimal;
   }
 
   function addCoordinate(lat, lng) {
@@ -277,16 +296,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const start = performance.now();
 
     function step(now) {
+      if (!isAnimating) return;
       const elapsed = now - start;
-      const progress = Math.min(elapsed / duration, 1);
+      const progress = (elapsed / duration) % 1; // Loop: varışa gelince başa sarar
       const point = getPointAlongLine(latlngs, progress);
       shipMarker.setLatLng(point);
-
-      if (progress < 1) {
-        animationId = requestAnimationFrame(step);
-      } else {
-        finishAnimation();
-      }
+      animationId = requestAnimationFrame(step);
     }
     animationId = requestAnimationFrame(step);
   }
@@ -318,25 +333,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Form gönderimi - 365038 303622 formatı (DDMMSS)
+  // Form gönderimi - DMS formatı (enlem/boylam ayrı)
   document.getElementById('coordinate-form').addEventListener('submit', (e) => {
     e.preventDefault();
-    const latVal = document.getElementById('lat-input').value.trim();
-    const lngVal = document.getElementById('lng-input').value.trim();
-    const lat = parseCoordValue(latVal, 'lat');
-    const lng = parseCoordValue(lngVal, 'lng');
-    if (lat === null || lng === null) {
-      showToast('Geçerli koordinat girin. Örn: 365038 303622', 'error');
+    const latRaw = document.getElementById('dms-lat-input').value.trim();
+    const lngRaw = document.getElementById('dms-lng-input').value.trim();
+    if (!latRaw || !lngRaw) {
+      showToast('Enlem ve boylam girin', 'error');
       return;
     }
-    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-      showToast('Geçerli koordinat girin (Enlem: -90–90, Boylam: -180–180)', 'error');
+    const lat = parseDMSSingle(latRaw);
+    const lng = parseDMSSingle(lngRaw);
+    if (lat === null) { showToast('Geçerli enlem girin. Örn: 40° 52\' 30" N', 'error'); return; }
+    if (lng === null) { showToast('Geçerli boylam girin. Örn: 29° 15\' 45" E', 'error'); return; }
+    const coord = { lat, lng };
+
+    if (coord.lat < -90 || coord.lat > 90 || coord.lng < -180 || coord.lng > 180) {
+      const badLat = coord.lat < -90 || coord.lat > 90;
+      const badLng = coord.lng < -180 || coord.lng > 180;
+      let msg = 'Geçersiz koordinat: ';
+      if (badLat) msg += `Enlem ${coord.lat.toFixed(2)}° (-90–90 arası olmalı). `;
+      if (badLng) msg += `Boylam ${coord.lng.toFixed(2)}° (-180–180 arası olmalı). `;
+      showToast(msg, 'error');
       return;
     }
-    addCoordinate(lat, lng);
-    showToast(`Koordinat eklendi: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
-    document.getElementById('lat-input').value = '';
-    document.getElementById('lng-input').value = '';
+    addCoordinate(coord.lat, coord.lng);
+    showToast(`Koordinat eklendi: ${coord.lat.toFixed(4)}, ${coord.lng.toFixed(4)}`);
+    document.getElementById('dms-lat-input').value = '';
+    document.getElementById('dms-lng-input').value = '';
   });
 
   document.getElementById('start-tracking').addEventListener('click', () => {

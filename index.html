@@ -31,15 +31,18 @@
                         <span class="panel-icon">📍</span>
                         Koordinat Girişi
                     </h2>
+
                     <form id="coordinate-form" class="coordinate-form">
-                        <div class="input-hint-top">Örn: 36°50'38"N 30°36'22"E</div>
-                        <div class="input-group">
-                            <label for="lat-input">Enlem</label>
-                            <input type="text" id="lat-input" placeholder="365038" required>
-                        </div>
-                        <div class="input-group">
-                            <label for="lng-input">Boylam</label>
-                            <input type="text" id="lng-input" placeholder="303622" required>
+                        <div class="format-inputs">
+                            <div class="input-hint-top">Örn: 40° 52' 30" N ve 29° 15' 45" E veya 405230N ve 291545E</div>
+                            <div class="input-group">
+                                <label for="dms-lat-input">Enlem</label>
+                                <input type="text" id="dms-lat-input">
+                            </div>
+                            <div class="input-group">
+                                <label for="dms-lng-input">Boylam</label>
+                                <input type="text" id="dms-lng-input">
+                            </div>
                         </div>
                         <button type="submit" class="btn btn-primary">
                             <span>Koordinat Ekle</span>

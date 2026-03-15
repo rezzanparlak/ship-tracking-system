@@ -1,6 +1,3 @@
-/* ============================================
-   GEMİ TAKİP SİSTEMİ - Denizcilik Temalı Tasarım
-   ============================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
@@ -31,7 +28,6 @@ html, body {
   color: #e8f4f8;
 }
 
-/* ===== Arka plan animasyonu ===== */
 body::before {
   content: '';
   position: fixed;
@@ -53,7 +49,6 @@ body::before {
   50% { opacity: 0.7; }
 }
 
-/* Dalga çizgileri */
 .wave-lines {
   position: fixed;
   bottom: 0;
@@ -72,7 +67,6 @@ body::before {
   100% { transform: translateX(-50%); }
 }
 
-/* ===== Okyanus arka plan ve dalgalar ===== */
 .ocean-bg {
   position: fixed;
   top: 0;
@@ -97,7 +91,6 @@ body::before {
 .wave-2 { animation-delay: -5s; opacity: 0.5; height: 150px; }
 .wave-3 { animation-delay: -10s; opacity: 0.3; height: 100px; }
 
-/* ===== Ana yerleşim ===== */
 .app-container {
   display: flex;
   flex-direction: column;
@@ -119,7 +112,6 @@ body::before {
   min-height: 0;
 }
 
-/* ===== Sol panel - Koordinat girişi ===== */
 .sidebar {
   width: 380px;
   min-width: 380px;
@@ -131,6 +123,8 @@ body::before {
   gap: 24px;
   backdrop-filter: blur(12px);
   box-shadow: 4px 0 40px rgba(0, 0, 0, 0.3);
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .logo {
@@ -177,7 +171,6 @@ body::before {
   -webkit-text-fill-color: initial;
 }
 
-/* Panel ve kart stilleri */
 .card {
   border-radius: 16px;
   border: 1px solid rgba(0, 212, 255, 0.12);
@@ -191,7 +184,11 @@ body::before {
 }
 
 .coordinate-panel {
-  padding: 24px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
 }
 
 .coordinate-panel h2 {
@@ -201,15 +198,21 @@ body::before {
   font-size: 1rem;
   font-weight: 600;
   color: var(--wave-blue);
-  margin-bottom: 24px;
+  margin-bottom: 28px;
   letter-spacing: 0.3px;
+}
+
+.format-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 28px;
 }
 
 .panel-icon {
   font-size: 1.2rem;
 }
 
-/* Koordinat paneli - daha ferah düzen */
 .coordinate-panel .coordinate-form {
   margin-bottom: 28px;
 }
@@ -233,6 +236,11 @@ body::before {
   margin-top: 28px;
   padding-top: 24px;
   border-top: 1px solid rgba(0, 212, 255, 0.12);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
 }
 
 .coordinates-list h3 {
@@ -254,18 +262,35 @@ body::before {
 }
 
 .coordinates-container {
-  max-height: 200px;
-  overflow-y: auto;
+  flex: 1;
+  min-height: 80px;
+  height: 110px;
+  max-height: 130px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   margin-bottom: 20px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-cyan) rgba(0, 0, 0, 0.3);
+  scrollbar-gutter: stable;
 }
 
 .coordinates-container::-webkit-scrollbar {
-  width: 6px;
+  width: 10px;
+}
+
+.coordinates-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 5px;
 }
 
 .coordinates-container::-webkit-scrollbar-thumb {
-  background: rgba(0, 212, 255, 0.3);
-  border-radius: 3px;
+  background: var(--accent-cyan);
+  border-radius: 5px;
+}
+
+.coordinates-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 212, 255, 0.9);
 }
 
 #coordinates-list {
@@ -614,7 +639,6 @@ body::before {
   background: var(--ocean-mid);
 }
 
-/* Harita üzerindeki bilgi overlay - sadece yeterli koordinat yokken */
 .map-overlay {
   position: absolute;
   top: 0;
@@ -653,13 +677,11 @@ body::before {
   opacity: 0.8;
 }
 
-/* Leaflet özelleştirmesi */
 .leaflet-container {
   font-family: 'Outfit', sans-serif;
   background: var(--ocean-mid) !important;
 }
 
-/* Özel gemi marker'ı */
 .ship-marker {
   background: none !important;
   border: none !important;
@@ -678,7 +700,6 @@ body::before {
   display: block;
 }
 
-/* Koordinat pinleri */
 .pin-marker,
 .flag-marker {
   background: none !important;
@@ -702,7 +723,6 @@ body::before {
   50% { transform: translateY(-3px) rotate(2deg); }
 }
 
-/* Kontrol paneli - harita üzerinde */
 .map-controls {
   position: absolute;
   top: 20px;
@@ -779,7 +799,6 @@ body::before {
   color: var(--accent-cyan);
 }
 
-/* Animasyonlar */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -807,7 +826,6 @@ body::before {
   }
 }
 
-/* Toast bildirimleri */
 .toast {
   position: fixed;
   bottom: 24px;
@@ -835,7 +853,6 @@ body::before {
   color: #fff;
 }
 
-/* Responsive */
 @media (max-width: 900px) {
   .app-container {
     flex-direction: column;
@@ -849,7 +866,21 @@ body::before {
     border-bottom: 1px solid rgba(0, 212, 255, 0.15);
   }
 
-  .coord-list-section {
+  .coordinates-list {
+    min-height: 80px;
+  }
+
+  .coordinates-container {
+    flex: 1;
+    min-height: 60px;
     max-height: 120px;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Kısa ekranlarda koordinat listesi scroll alanı */
+@media (max-height: 700px) {
+  .coordinates-container {
+    max-height: 110px;
   }
 }
