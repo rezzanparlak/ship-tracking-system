@@ -57,9 +57,6 @@
                             <ul id="coordinates-list"></ul>
                         </div>
                         <div class="list-actions">
-                            <button id="start-tracking" class="btn btn-success" disabled>
-                                <span>🛥️ Takibi Başlat</span>
-                            </button>
                             <button id="clear-all" class="btn btn-ghost">
                                 <span>Temizle</span>
                             </button>
@@ -73,11 +70,35 @@
                     <div id="map"></div>
                     <div class="map-overlay visible" id="map-overlay">
                         <div class="overlay-content">
-                            <p>Koordinat ekleyin ve takibi başlatın</p>
-                            <span class="overlay-hint">En az 2 koordinat gereklidir</span>
+                            <p>Koordinat ekleyin</p>
+                            <span class="overlay-hint">En az 2 koordinat ile rota görüntülenir</span>
                         </div>
                     </div>
                 </div>
+                <section class="voyage-panel card glass">
+                    <div class="voyage-row">
+                        <div class="voyage-field">
+                            <label for="distance-input">Distance</label>
+                            <input type="number" id="distance-input" min="0" step="0.1" placeholder="Nm">
+                            <span class="voyage-unit">Nm</span>
+                        </div>
+                        <div class="voyage-field">
+                            <label for="ship-speed-input">Ship speed</label>
+                            <input type="number" id="ship-speed-input" min="0" step="0.1" placeholder="Knt">
+                            <span class="voyage-hint">Knt</span>
+                        </div>
+                        <div class="voyage-results">
+                            <div class="voyage-result">
+                                <span class="voyage-label">Daily Distance</span>
+                                <span class="voyage-value" id="daily-distance">—</span>
+                            </div>
+                            <div class="voyage-result">
+                                <span class="voyage-label">Voyage Duration</span>
+                                <span class="voyage-value" id="voyage-duration">—</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
         </main>
     </div>

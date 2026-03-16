@@ -238,9 +238,10 @@ body::before {
   border-top: 1px solid rgba(0, 212, 255, 0.12);
   display: flex;
   flex-direction: column;
-  min-height: 0;
+  min-height: 160px;
   flex: 1;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .coordinates-list h3 {
@@ -677,6 +678,100 @@ body::before {
   opacity: 0.8;
 }
 
+/* Voyage parametreleri - harita altı */
+.voyage-panel {
+  padding: 16px 24px;
+  margin: 0 20px 20px 20px;
+  margin-left: 10px;
+  background: rgba(13, 33, 55, 0.75);
+  backdrop-filter: blur(16px);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 212, 255, 0.12);
+  flex-shrink: 0;
+}
+
+.voyage-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.voyage-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.voyage-field label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--wave-blue);
+  letter-spacing: 0.5px;
+}
+
+.voyage-field input {
+  width: 100px;
+  padding: 10px 12px;
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(10, 22, 40, 0.6);
+  color: #fff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+}
+
+.voyage-field input:focus {
+  outline: none;
+  border-color: var(--accent-cyan);
+}
+
+.voyage-field input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.voyage-hint {
+  font-size: 0.75rem;
+  color: var(--wave-blue);
+  opacity: 0.8;
+}
+
+.voyage-unit {
+  font-size: 0.75rem;
+  color: var(--wave-blue);
+  opacity: 0.9;
+}
+
+.voyage-results {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  margin-left: auto;
+}
+
+.voyage-result {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 20px;
+  background: rgba(0, 212, 255, 0.1);
+  border-radius: 10px;
+  border: 1px solid rgba(0, 212, 255, 0.2);
+}
+
+.voyage-label {
+  font-size: 0.8rem;
+  color: var(--wave-blue);
+  font-weight: 500;
+}
+
+.voyage-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--accent-cyan);
+}
+
 .leaflet-container {
   font-family: 'Outfit', sans-serif;
   background: var(--ocean-mid) !important;
@@ -861,26 +956,44 @@ body::before {
   .sidebar {
     width: 100%;
     min-width: 100%;
-    max-height: 45vh;
+    max-height: 55vh;
+    min-height: 320px;
     border-right: none;
     border-bottom: 1px solid rgba(0, 212, 255, 0.15);
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+
+  .coordinate-panel {
+    min-height: min-content;
+    flex: 0 0 auto;
   }
 
   .coordinates-list {
-    min-height: 80px;
+    min-height: 140px;
+    flex-shrink: 0;
+    overflow: visible;
   }
 
   .coordinates-container {
-    flex: 1;
-    min-height: 60px;
-    max-height: 120px;
+    min-height: 80px;
+    max-height: 140px;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .format-inputs,
+  .coordinate-panel .coordinate-form {
+    margin-bottom: 16px;
   }
 }
 
-/* Kısa ekranlarda koordinat listesi scroll alanı */
+/* Kısa ekranlarda da kayıtlı koordinatlar görünsün */
 @media (max-height: 700px) {
+  .sidebar {
+    max-height: 65vh;
+  }
+
   .coordinates-container {
-    max-height: 110px;
+    max-height: 120px;
   }
 }

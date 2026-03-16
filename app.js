@@ -2,12 +2,9 @@
 
 document.addEventListener('DOMContentLoaded', () => {
   let map = null;
-  let shipMarker = null;
   let routeLine = null;
   let coordMarkers = [];
   let coordinates = [];
-  let isAnimating = false;
-  let animationId = null;
 
   // Harita başlat
   function initMap() {
@@ -20,57 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setTimeout(() => map.invalidateSize(), 100);
   }
-
-  // Gemi ikonu 
-  const shipIcon = L.divIcon({
-    className: 'ship-marker',
-    html: `
-      <div class="ship-icon">
-        <svg viewBox="0 0 80 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- Su çizgisi / gövde altı -->
-          <path d="M4 28 Q8 26 16 26 L64 26 Q72 26 76 28 L76 32 L4 32 Z" fill="rgba(2,136,209,0.3)" stroke="#01579b" stroke-width="1"/>
-          <!-- Ana gövde (gemi karinası) -->
-          <path d="M4 28 L8 26 L16 26 L64 26 L72 26 L76 28 L76 30 L72 30 L8 30 L4 28 Z" fill="url(#shipHull)" stroke="#fff" stroke-width="1.5"/>
-          <!-- Güverte çizgisi -->
-          <path d="M10 24 L70 24" stroke="rgba(255,255,255,0.6)" stroke-width="1"/>
-          <!-- Köprü üst yapısı -->
-          <rect x="38" y="12" width="22" height="12" rx="1" fill="url(#shipBridge)" stroke="#fff" stroke-width="1"/>
-          <!-- Baca -->
-          <rect x="48" y="6" width="6" height="8" rx="1" fill="#546e7a" stroke="#37474f"/>
-          <!-- Pruva (burun) - belirgin sivri form -->
-          <path d="M4 28 L4 26 L12 24 L16 24" stroke="url(#shipBow)" stroke-width="2" fill="none"/>
-          <path d="M4 28 L10 26 L16 24" fill="url(#shipBow)"/>
-          <!-- Kıç / pupa -->
-          <path d="M64 24 L76 28 L76 30 L72 30" fill="url(#shipStern)"/>
-          <!-- Pencere detayları -->
-          <rect x="42" y="15" width="3" height="3" rx="0.5" fill="#fff" opacity="0.9"/>
-          <rect x="48" y="15" width="3" height="3" rx="0.5" fill="#fff" opacity="0.9"/>
-          <rect x="54" y="15" width="3" height="3" rx="0.5" fill="#fff" opacity="0.9"/>
-          <defs>
-            <linearGradient id="shipHull" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#29b6f6"/>
-              <stop offset="50%" stop-color="#0288d1"/>
-              <stop offset="100%" stop-color="#01579b"/>
-            </linearGradient>
-            <linearGradient id="shipBridge" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#4fc3f7"/>
-              <stop offset="100%" stop-color="#0277bd"/>
-            </linearGradient>
-            <linearGradient id="shipBow" x1="0" y1="1" x2="1" y2="0">
-              <stop offset="0%" stop-color="#0288d1"/>
-              <stop offset="100%" stop-color="#4fc3f7"/>
-            </linearGradient>
-            <linearGradient id="shipStern" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stop-color="#0288d1"/>
-              <stop offset="100%" stop-color="#01579b"/>
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-    `,
-    iconSize: [120, 60],
-    iconAnchor: [60, 30]
-  });
 
   // Pin ikonu - her koordinat için
   const pinIcon = L.divIcon({
@@ -155,23 +101,18 @@ document.addEventListener('DOMContentLoaded', () => {
     coordinates.push(coord);
     renderCoordinateList();
     updateMap();
-    updateStats();
   }
 
   function removeCoordinate(index) {
     coordinates.splice(index, 1);
     renderCoordinateList();
     updateMap();
-    updateStats();
-    if (coordinates.length === 0) stopAnimation();
   }
 
   function clearAll() {
     coordinates = [];
-    stopAnimation();
     renderCoordinateList();
     updateMap();
-    updateStats();
   }
 
   function renderCoordinateList() {
@@ -206,11 +147,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateMap() {
     if (routeLine) map.removeLayer(routeLine);
-    if (shipMarker) map.removeLayer(shipMarker);
     coordMarkers.forEach(m => map.removeLayer(m));
     coordMarkers = [];
     routeLine = null;
-    shipMarker = null;
 
     const overlay = document.getElementById('map-overlay');
     if (coordinates.length < 2) {
@@ -218,14 +157,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     overlay.classList.remove('visible');
-
-    // Harita overlay kaldırıldığında Leaflet'in boyutları yenilemesi gerekir
-    setTimeout(() => {
-      if (map) {
-        map.invalidateSize();
-        map.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
-      }
-    }, 450);
 
     const latlngs = coordinates.map(c => [c.lat, c.lng]);
     routeLine = L.polyline(latlngs, {
@@ -238,7 +169,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }).addTo(map);
 
     map.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
-    shipMarker = L.marker(latlngs[0], { icon: shipIcon }).addTo(map);
+
+    // Harita boyutları yenile
+    setTimeout(() => {
+      if (map) {
+        map.invalidateSize();
+        map.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
+      }
+    }, 100);
 
     // Her koordinata pin, varış noktasına bayrak
     latlngs.forEach((latlng, i) => {
@@ -247,90 +185,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const m = L.marker(latlng, { icon }).addTo(map);
       coordMarkers.push(m);
     });
-  }
-
-  function updateStats() {
-    document.getElementById('start-tracking').disabled = coordinates.length < 2;
-  }
-
-  function getPointAlongLine(latlngs, progress) {
-    if (latlngs.length < 2) return latlngs[0];
-    const totalLen = getTotalLength(latlngs);
-    let target = progress * totalLen;
-    let acc = 0;
-    for (let i = 1; i < latlngs.length; i++) {
-      const d = getDistance(latlngs[i - 1], latlngs[i]);
-      if (acc + d >= target) {
-        const t = (target - acc) / d;
-        return [
-          latlngs[i - 1][0] + t * (latlngs[i][0] - latlngs[i - 1][0]),
-          latlngs[i - 1][1] + t * (latlngs[i][1] - latlngs[i - 1][1])
-        ];
-      }
-      acc += d;
-    }
-    return latlngs[latlngs.length - 1];
-  }
-
-  function getDistance(a, b) {
-    return Math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2);
-  }
-
-  function getTotalLength(latlngs) {
-    let len = 0;
-    for (let i = 1; i < latlngs.length; i++) {
-      len += getDistance(latlngs[i - 1], latlngs[i]);
-    }
-    return len;
-  }
-
-  function animateShip() {
-    if (coordinates.length < 2 || isAnimating) return;
-    isAnimating = true;
-    document.getElementById('start-tracking').disabled = true;
-    document.getElementById('start-tracking').innerHTML = '<span>⏸️ Durdur</span>';
-    document.getElementById('start-tracking').id = 'stop-tracking-temp';
-
-    const latlngs = coordinates.map(c => [c.lat, c.lng]);
-    const duration = Math.max(8000, latlngs.length * 1200);
-    const start = performance.now();
-
-    function step(now) {
-      if (!isAnimating) return;
-      const elapsed = now - start;
-      const progress = (elapsed / duration) % 1; // Loop: varışa gelince başa sarar
-      const point = getPointAlongLine(latlngs, progress);
-      shipMarker.setLatLng(point);
-      animationId = requestAnimationFrame(step);
-    }
-    animationId = requestAnimationFrame(step);
-  }
-
-  function finishAnimation() {
-    isAnimating = false;
-    const btn = document.getElementById('stop-tracking-temp') || document.getElementById('start-tracking');
-    if (btn) {
-      btn.id = 'start-tracking';
-      btn.innerHTML = '<span>🛥️ Takibi Başlat</span>';
-      btn.disabled = false;
-    }
-  }
-
-  function stopAnimation() {
-    if (animationId) {
-      cancelAnimationFrame(animationId);
-      animationId = null;
-    }
-    isAnimating = false;
-    const btn = document.getElementById('stop-tracking-temp') || document.getElementById('start-tracking');
-    if (btn) {
-      btn.id = 'start-tracking';
-      btn.innerHTML = '<span>🛥️ Takibi Başlat</span>';
-      btn.disabled = coordinates.length < 2;
-    }
-    if (coordinates.length > 0 && shipMarker) {
-      shipMarker.setLatLng([coordinates[0].lat, coordinates[0].lng]);
-    }
   }
 
   // Form gönderimi - DMS formatı (enlem/boylam ayrı)
@@ -363,12 +217,40 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('dms-lng-input').value = '';
   });
 
-  document.getElementById('start-tracking').addEventListener('click', () => {
-    if (isAnimating) stopAnimation();
-    else animateShip();
-  });
-
   document.getElementById('clear-all').addEventListener('click', clearAll);
+
+  // Daily Distance: Distance × 24 | Voyage Duration: Distance / (Ship speed * 24) = gün
+  function updateVoyageCalculations() {
+    const distance = parseFloat(document.getElementById('distance-input').value);
+    const speed = parseFloat(document.getElementById('ship-speed-input').value);
+    const dailyEl = document.getElementById('daily-distance');
+    const durationEl = document.getElementById('voyage-duration');
+
+    // Daily Distance = Distance × 24
+    if (distance && distance > 0) {
+      dailyEl.textContent = `${(distance * 24).toFixed(1)} Nm`;
+    } else {
+      dailyEl.textContent = '—';
+    }
+
+    // Voyage Duration = Distance / (Ship speed × 24)
+    if (!distance || !speed || speed <= 0) {
+      durationEl.textContent = '—';
+      return;
+    }
+    const days = distance / (speed * 24);
+    if (days >= 1) {
+      durationEl.textContent = `${days.toFixed(2)} gün`;
+    } else {
+      const hours = days * 24;
+      durationEl.textContent = `${hours.toFixed(1)} saat`;
+    }
+  }
+
+  document.getElementById('distance-input').addEventListener('input', updateVoyageCalculations);
+  document.getElementById('distance-input').addEventListener('change', updateVoyageCalculations);
+  document.getElementById('ship-speed-input').addEventListener('input', updateVoyageCalculations);
+  document.getElementById('ship-speed-input').addEventListener('change', updateVoyageCalculations);
 
   function showToast(message, type = 'success') {
     const toast = document.createElement('div');
@@ -383,5 +265,4 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   initMap();
-  updateStats();
 });
