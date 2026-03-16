@@ -3,6 +3,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   let map = null;
   let routeLine = null;
+  let segmentLines = [];
   let coordMarkers = [];
   let coordinates = [];
 
@@ -96,6 +97,16 @@ document.addEventListener('DOMContentLoaded', () => {
     return decimal;
   }
 
+  // İki koordinat arası mesafe (Haversine) - deniz mili cinsinden
+  function getDistanceNm(lat1, lng1, lat2, lng2) {
+    const R = 6371000 / 1852; // Dünya yarıçapı (m) → Nm
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
   function addCoordinate(lat, lng) {
     const coord = { lat: parseFloat(lat), lng: parseFloat(lng) };
     coordinates.push(coord);
@@ -147,6 +158,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateMap() {
     if (routeLine) map.removeLayer(routeLine);
+    segmentLines.forEach(sl => map.removeLayer(sl));
+    segmentLines = [];
     coordMarkers.forEach(m => map.removeLayer(m));
     coordMarkers = [];
     routeLine = null;
@@ -178,13 +191,48 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }, 100);
 
-    // Her koordinata pin, varış noktasına bayrak
+    // Kümülatif mesafeler: pin i = başlangıçtan o noktaya kadar kat edilen toplam Nm
+    const cumulativeNm = [0];
+    for (let i = 0; i < latlngs.length - 1; i++) {
+      const a = latlngs[i];
+      const b = latlngs[i + 1];
+      cumulativeNm.push(cumulativeNm[cumulativeNm.length - 1] + getDistanceNm(a[0], a[1], b[0], b[1]));
+    }
+
+    // Her koordinata pin, varış noktasına bayrak + hover'da toplam mesafe tooltip
     latlngs.forEach((latlng, i) => {
       const isDestination = i === latlngs.length - 1;
       const icon = isDestination ? flagIcon : pinIcon;
       const m = L.marker(latlng, { icon }).addTo(map);
+      m.bindTooltip(`${cumulativeNm[i].toFixed(1)} Nm`, {
+        permanent: false,
+        direction: 'top',
+        opacity: 0.95,
+        className: 'pin-distance-tooltip'
+      });
       coordMarkers.push(m);
     });
+
+    // Her segment için hover'da mesafe (Nm) gösteren görünmez polyline
+    for (let i = 0; i < latlngs.length - 1; i++) {
+      const a = latlngs[i];
+      const b = latlngs[i + 1];
+      const nm = getDistanceNm(a[0], a[1], b[0], b[1]);
+      const seg = L.polyline([a, b], {
+        color: 'transparent',
+        weight: 24,
+        opacity: 0,
+        interactive: true
+      })
+        .bindTooltip(`${nm.toFixed(1)} Nm`, {
+          permanent: false,
+          direction: 'top',
+          opacity: 0.95,
+          className: 'segment-distance-tooltip'
+        })
+        .addTo(map);
+      segmentLines.push(seg);
+    }
   }
 
   // Form gönderimi - DMS formatı (enlem/boylam ayrı)
