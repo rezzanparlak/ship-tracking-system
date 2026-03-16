@@ -267,16 +267,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('clear-all').addEventListener('click', clearAll);
 
-  // Daily Distance: Distance × 24 | Voyage Duration: Distance / (Ship speed * 24) = gün
+  // Daily Distance: Ship speed × 24 (Nm/gün) | Voyage Duration: Distance / (Ship speed × 24) = gün
   function updateVoyageCalculations() {
     const distance = parseFloat(document.getElementById('distance-input').value);
     const speed = parseFloat(document.getElementById('ship-speed-input').value);
     const dailyEl = document.getElementById('daily-distance');
     const durationEl = document.getElementById('voyage-duration');
 
-    // Daily Distance = Distance × 24
-    if (distance && distance > 0) {
-      dailyEl.textContent = `${(distance * 24).toFixed(1)} Nm`;
+    // Daily Distance = Ship speed × 24 (knot = Nm/h → ×24 = Nm/gün)
+    if (speed && speed > 0) {
+      dailyEl.textContent = `${(speed * 24).toFixed(1)} Nm`;
     } else {
       dailyEl.textContent = '—';
     }
