@@ -3,6 +3,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   let map = null;
   let routeLine = null;
+  let shipMarker = null;
   let segmentLines = [];
   let coordMarkers = [];
   let coordinates = [];
@@ -33,6 +34,49 @@ document.addEventListener('DOMContentLoaded', () => {
     `,
     iconSize: [24, 36],
     iconAnchor: [12, 36]
+  });
+
+  // Gemi ikonu - başlangıç noktasında (animasyonlu, hareket etmez)
+  const shipIcon = L.divIcon({
+    className: 'ship-marker',
+    html: `
+      <div class="ship-icon">
+        <svg viewBox="0 0 80 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 28 Q8 26 16 26 L64 26 Q72 26 76 28 L76 32 L4 32 Z" fill="rgba(2,136,209,0.3)" stroke="#01579b" stroke-width="1"/>
+          <path d="M4 28 L8 26 L16 26 L64 26 L72 26 L76 28 L76 30 L72 30 L8 30 L4 28 Z" fill="url(#shipHull)" stroke="#fff" stroke-width="1.5"/>
+          <path d="M10 24 L70 24" stroke="rgba(255,255,255,0.6)" stroke-width="1"/>
+          <rect x="38" y="12" width="22" height="12" rx="1" fill="url(#shipBridge)" stroke="#fff" stroke-width="1"/>
+          <rect x="48" y="6" width="6" height="8" rx="1" fill="#546e7a" stroke="#37474f"/>
+          <path d="M4 28 L4 26 L12 24 L16 24" stroke="url(#shipBow)" stroke-width="2" fill="none"/>
+          <path d="M4 28 L10 26 L16 24" fill="url(#shipBow)"/>
+          <path d="M64 24 L76 28 L76 30 L72 30" fill="url(#shipStern)"/>
+          <rect x="42" y="15" width="3" height="3" rx="0.5" fill="#fff" opacity="0.9"/>
+          <rect x="48" y="15" width="3" height="3" rx="0.5" fill="#fff" opacity="0.9"/>
+          <rect x="54" y="15" width="3" height="3" rx="0.5" fill="#fff" opacity="0.9"/>
+          <defs>
+            <linearGradient id="shipHull" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#29b6f6"/>
+              <stop offset="50%" stop-color="#0288d1"/>
+              <stop offset="100%" stop-color="#01579b"/>
+            </linearGradient>
+            <linearGradient id="shipBridge" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#4fc3f7"/>
+              <stop offset="100%" stop-color="#0277bd"/>
+            </linearGradient>
+            <linearGradient id="shipBow" x1="0" y1="1" x2="1" y2="0">
+              <stop offset="0%" stop-color="#0288d1"/>
+              <stop offset="100%" stop-color="#4fc3f7"/>
+            </linearGradient>
+            <linearGradient id="shipStern" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#0288d1"/>
+              <stop offset="100%" stop-color="#01579b"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+    `,
+    iconSize: [120, 60],
+    iconAnchor: [60, 30]
   });
 
   // Bayrak ikonu - varış noktası
@@ -158,11 +202,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateMap() {
     if (routeLine) map.removeLayer(routeLine);
+    if (shipMarker) map.removeLayer(shipMarker);
     segmentLines.forEach(sl => map.removeLayer(sl));
     segmentLines = [];
     coordMarkers.forEach(m => map.removeLayer(m));
     coordMarkers = [];
     routeLine = null;
+    shipMarker = null;
 
     const overlay = document.getElementById('map-overlay');
     if (coordinates.length < 2) {
@@ -212,6 +258,9 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       coordMarkers.push(m);
     });
+
+    // Gemi ikonu başlangıç noktasında (animasyonlu, hareket etmez)
+    shipMarker = L.marker(latlngs[0], { icon: shipIcon }).addTo(map);
 
     // Her segment için hover'da mesafe (Nm) gösteren görünmez polyline
     for (let i = 0; i < latlngs.length - 1; i++) {
